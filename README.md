@@ -47,6 +47,12 @@ module_id
     └── x86_64.so
 ```
 
+## ADB
+
+```shell
+adb -d logcat ZygiskMappedMemoryDumper:D *:S
+```
+
 ## License
 
 Although the main Magisk project is licensed under GPLv3, the Zygisk API and its headers are not. Every source code in this repository is released under 0BSD (a public domain equivalent license), so you don't have to worry about any licensing issues while developing Zygisk modules.
