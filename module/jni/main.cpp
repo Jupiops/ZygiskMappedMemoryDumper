@@ -18,14 +18,13 @@
 #include <fcntl.h>
 #include <android/log.h>
 
+#include "log.h"
 #include "zygisk.hpp"
 #include "no_strings.hpp"
 
 using zygisk::Api;
 using zygisk::AppSpecializeArgs;
 using zygisk::ServerSpecializeArgs;
-
-#define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, "MyModule", __VA_ARGS__)
 
 class MyModule : public zygisk::ModuleBase {
 public:
@@ -36,7 +35,7 @@ public:
 
     void postAppSpecialize(const AppSpecializeArgs *args) override {
         if (!args || !args->nice_name) {
-            LOGD("%s", make_string("Skip unknown process").c_str());
+            LOGE("%s", make_string("Skip unknown process").c_str());
             api->setOption(zygisk::Option::DLCLOSE_MODULE_LIBRARY);
             return;
         }
@@ -51,8 +50,8 @@ public:
             return;
         }
 
-        LOGD("App detected: %s", app_name.c_str());
-        LOGD("PID: %d", getpid());
+        LOGI("App detected: %s", app_name.c_str());
+        LOGI("PID: %d", getpid());
 
     }
 
