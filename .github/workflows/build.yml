@@ -35,7 +35,7 @@ jobs:
 
       - name: Building the module
         working-directory: module
-        run: ndk-build
+        run: ndk-build -j4
 
       # Upload the resulting artifact
       - name: 'Upload Artifact'
