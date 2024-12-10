@@ -1,0 +1,7 @@
+id=net.jupiops.zmmd
+name=Zygisk Mapped Memory Dumper
+version=v0.1
+versionCode=1
+author=Jupiops
+description=Magisk Module to dump mapped memory
+updateJson=

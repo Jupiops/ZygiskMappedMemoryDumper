@@ -13,11 +13,13 @@
  */
 
 #include <cstdlib>
+#include <string>
 #include <unistd.h>
 #include <fcntl.h>
 #include <android/log.h>
 
 #include "zygisk.hpp"
+#include "no_strings.hpp"
 
 using zygisk::Api;
 using zygisk::AppSpecializeArgs;
@@ -32,48 +34,33 @@ public:
         this->env = env;
     }
 
-    void preAppSpecialize(AppSpecializeArgs *args) override {
+    void postAppSpecialize(const AppSpecializeArgs *args) override {
+        if (!args || !args->nice_name) {
+            LOGD("%s", make_string("Skip unknown process").c_str());
+            api->setOption(zygisk::Option::DLCLOSE_MODULE_LIBRARY);
+            return;
+        }
         // Use JNI to fetch our process name
-        const char *process = env->GetStringUTFChars(args->nice_name, nullptr);
-        preSpecialize(process);
-        env->ReleaseStringUTFChars(args->nice_name, process);
-    }
+        const char *raw_app_name = env->GetStringUTFChars(args->nice_name, nullptr);
 
-    void preServerSpecialize(ServerSpecializeArgs *args) override {
-        preSpecialize("system_server");
+        std::string app_name = std::string(raw_app_name);
+        env->ReleaseStringUTFChars(args->nice_name, raw_app_name);
+
+        if (app_name.compare(make_string("ar.tvplayer.tv")) != 0) {
+            api->setOption(zygisk::Option::DLCLOSE_MODULE_LIBRARY);
+            return;
+        }
+
+        LOGD("App detected: %s", app_name.c_str());
+        LOGD("PID: %d", getpid());
+
     }
 
 private:
     Api *api;
     JNIEnv *env;
 
-    void preSpecialize(const char *process) {
-        // Demonstrate connecting to to companion process
-        // We ask the companion for a random number
-        unsigned r = 0;
-        int fd = api->connectCompanion();
-        read(fd, &r, sizeof(r));
-        close(fd);
-        LOGD("process=[%s], r=[%u]\n", process, r);
-
-        // Since we do not hook any functions, we should let Zygisk dlclose ourselves
-        api->setOption(zygisk::Option::DLCLOSE_MODULE_LIBRARY);
-    }
-
 };
-
-static int urandom = -1;
-
-static void companion_handler(int i) {
-    if (urandom < 0) {
-        urandom = open("/dev/urandom", O_RDONLY);
-    }
-    unsigned r;
-    read(urandom, &r, sizeof(r));
-    LOGD("companion r=[%u]\n", r);
-    write(i, &r, sizeof(r));
-}
 
 // Register our module class and the companion handler function
 REGISTER_ZYGISK_MODULE(MyModule)
-REGISTER_ZYGISK_COMPANION(companion_handler)

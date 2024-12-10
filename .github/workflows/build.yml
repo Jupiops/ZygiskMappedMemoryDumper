@@ -33,9 +33,11 @@ jobs:
         with:
           ndk-version: r27
 
-      - name: Building the module
+      - name: Run build script
         working-directory: module
-        run: ndk-build -j4
+        run: |
+          chmod +x build.sh
+          build.sh
 
       # Upload the resulting artifact
       - name: 'Upload Artifact'
@@ -43,4 +45,4 @@ jobs:
         with:
           name: ZygiskMappedMemoryDumper
           compression-level: 9
-          path: module/libs
+          path: module/out/*
