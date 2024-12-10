@@ -110,7 +110,7 @@ private:
             if (iss >> entry.pathname) {
                 entries.push_back(entry);
             } else {
-                entry.pathname = "[anonymous]";
+                entry.pathname = make_string("[anonymous]");
                 entries.push_back(entry);
             }
         }
@@ -120,16 +120,18 @@ private:
     }
 
     static void parseMapsThread() {
-        std::this_thread::sleep_for(std::chrono::seconds(4)); // Wait for 4 seconds
-        const std::string mapsPath = "/proc/self/maps";
+        std::this_thread::sleep_for(std::chrono::seconds(5)); // Wait for 5 seconds
+        const std::string mapsPath = make_string("/proc/self/maps");
         std::vector <MapEntry> entries = parseMaps(mapsPath);
 
         for (const auto &entry: entries) {
-            LOGD("%lx-%lx %s %lx %s %d %s",
-                 entry.start_address, entry.end_address,
-                 entry.permissions.c_str(), entry.offset,
-                 entry.device.c_str(), entry.inode,
-                 entry.pathname.c_str());
+            if (entry.permissions.find('r') != std::string::npos) { // Filter for readable memory
+                LOGD("%lx-%lx %s %lx %s %d %s",
+                     entry.start_address, entry.end_address,
+                     entry.permissions.c_str(), entry.offset,
+                     entry.device.c_str(), entry.inode,
+                     entry.pathname.c_str());
+            }
         }
     }
 
