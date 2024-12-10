@@ -31,7 +31,7 @@ jobs:
       - uses: nttld/setup-ndk@v1
         id: setup-ndk
         with:
-          ndk-version: r21e
+          ndk-version: r23
 
       - name: Building the module
         working-directory: module
