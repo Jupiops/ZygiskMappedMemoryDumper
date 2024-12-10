@@ -31,34 +31,16 @@ jobs:
       - uses: nttld/setup-ndk@v1
         id: setup-ndk
         with:
-          ndk-version: r23
-          local-cache: true
+          ndk-version: r21e
 
-      # Install dependencies
-      - name: Install Ninja Build System
-        run: sudo apt-get install -y ninja-build
-
-      # Step 4: Configure and Build with CMake for All ABIs
-      - name: Build with CMake for All ABIs
-        run: |
-          ABIS=("armeabi-v7a" "arm64-v8a" "x86" "x86_64")
-          for ABI in "${ABIS[@]}"; do
-            echo "Building for ABI: $ABI"
-            mkdir -p build/$ABI
-            cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake \
-                  -DANDROID_ABI=$ABI \
-                  -DANDROID_PLATFORM=android-31 \
-                  -S module/jni/libcxx \
-                  -B build/$ABI
-            cmake --build build/$ABI
-          done
+      - name: Building the module
+        working-directory: module
+        run: ndk-build
 
       # Upload the resulting artifact
       - name: 'Upload Artifact'
         uses: actions/upload-artifact@v4
         with:
-          name: libhookso
+          name: ZygiskMappedMemoryDumper
           compression-level: 9
-          path: |
-            x32/libs
-            x64/libs
+          path: module/libs
