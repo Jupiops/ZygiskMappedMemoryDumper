@@ -28,7 +28,7 @@ if [ -d "$LIBS_DIR" ]; then
         if [ -d "$ABI_DIR" ]; then
             ABI_NAME="$(basename "$ABI_DIR")"
             mkdir -p "$OUT_DIR/zygisk/$ABI_NAME"
-            cp "$ABI_DIR"/lib*.so "$OUT_DIR/zygisk/$ABI_NAME/"
+            cp "$ABI_DIR"/lib*.so "$OUT_DIR/zygisk/$ABI_NAME.so"
         fi
     done
 else
