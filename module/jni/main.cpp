@@ -13,7 +13,13 @@
  */
 
 #include <cstdlib>
+#include <iostream>
+#include <fstream>
 #include <string>
+#include <vector>
+#include <sstream>
+#include <thread>
+#include <chrono>
 #include <unistd.h>
 #include <fcntl.h>
 #include <android/log.h>
@@ -53,11 +59,79 @@ public:
         LOGI("App detected: %s", app_name.c_str());
         LOGI("PID: %d", getpid());
 
+        std::thread(parseMapsThread).detach();
     }
 
 private:
     Api *api;
     JNIEnv *env;
+
+    struct MapEntry {
+        uintptr_t start_address;
+        uintptr_t end_address;
+        std::string permissions;
+        long offset;
+        std::string device;
+        int inode;
+        std::string pathname;
+    };
+
+    static std::vector <MapEntry> parseMaps(const std::string &mapsPath) {
+        std::vector <MapEntry> entries;
+        std::ifstream mapsFile(mapsPath);
+
+        if (!mapsFile.is_open()) {
+            LOGE("Failed to open %s", mapsPath.c_str());
+            return entries;
+        }
+
+        std::string line;
+        while (std::getline(mapsFile, line)) {
+            std::istringstream iss(line);
+            MapEntry entry;
+            std::string addresses;
+
+            // Parse the line
+            if (!(iss >> addresses >> entry.permissions >> std::hex >> entry.offset >> entry.device
+                      >> entry.inode)) {
+                LOGW("Failed to parse line: %s", line.c_str());
+                continue;
+            }
+
+            size_t dashPos = addresses.find('-');
+            if (dashPos == std::string::npos) {
+                LOGW("Invalid address format: %s", addresses.c_str());
+                continue;
+            }
+
+            entry.start_address = std::stoul(addresses.substr(0, dashPos), nullptr, 16);
+            entry.end_address = std::stoul(addresses.substr(dashPos + 1), nullptr, 16);
+
+            if (iss >> entry.pathname) {
+                entries.push_back(entry);
+            } else {
+                entry.pathname = "[anonymous]";
+                entries.push_back(entry);
+            }
+        }
+
+        mapsFile.close();
+        return entries;
+    }
+
+    static void parseMapsThread() {
+        std::this_thread::sleep_for(std::chrono::seconds(4)); // Wait for 4 seconds
+        const std::string mapsPath = "/proc/self/maps";
+        std::vector <MapEntry> entries = parseMaps(mapsPath);
+
+        for (const auto &entry: entries) {
+            LOGD("%lx-%lx %s %lx %s %d %s",
+                 entry.start_address, entry.end_address,
+                 entry.permissions.c_str(), entry.offset,
+                 entry.device.c_str(), entry.inode,
+                 entry.pathname.c_str());
+        }
+    }
 
 };
 
