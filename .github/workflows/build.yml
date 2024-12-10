@@ -37,7 +37,7 @@ jobs:
         working-directory: module
         run: |
           chmod +x build.sh
-          build.sh
+          ./build.sh
 
       # Upload the resulting artifact
       - name: 'Upload Artifact'
