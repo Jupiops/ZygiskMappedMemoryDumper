@@ -212,10 +212,17 @@ private:
         uint8_t dex_magic_pattern_bytes[16];
         bool dex_magic_pattern_mask[16];
         int dex_magic_pattern_len = parse_pattern(dex_magic_pattern, dex_magic_pattern_bytes, dex_magic_pattern_mask, 16);
-        LOGD("Searching for DEX magic pattern: %s", dex_magic_pattern);
-
         if (dex_magic_pattern_len < 1) {
             LOGE("%s", make_string("Failed to parse dex magic pattern").c_str());
+            return;
+        }
+
+        const char *odex_magic_pattern = make_string("64 65 79 0a 30 ?? ?? 00").c_str();
+        uint8_t odex_magic_pattern_bytes[16];
+        bool odex_magic_pattern_mask[16];
+        int odex_magic_pattern_len = parse_pattern(odex_magic_pattern, odex_magic_pattern_bytes, odex_magic_pattern_mask, 16);
+        if (odex_magic_pattern_len < 1) {
+            LOGE("%s", make_string("Failed to parse odex magic pattern").c_str());
             return;
         }
 
@@ -231,9 +238,15 @@ private:
                      entry.permissions.c_str(), entry.offset,
                      entry.device.c_str(), entry.inode,
                      entry.pathname.c_str());
-                uintptr_t found = find_pattern((const uint8_t *) entry.start_address, (const uint8_t *) entry.end_address, dex_magic_pattern_bytes, dex_magic_pattern_mask, dex_magic_pattern_len);
-                if (found != 0) {
-                    LOGI("Found dex magic in %s at %lx", entry.pathname.c_str(), found);
+
+                uintptr_t dex_found = find_pattern((const uint8_t *) entry.start_address, (const uint8_t *) entry.end_address, dex_magic_pattern_bytes, dex_magic_pattern_mask, dex_magic_pattern_len);
+                if (dex_found != 0) {
+                    LOGI("Found dex magic in %s at %lx", entry.pathname.c_str(), dex_found);
+                }
+
+                uintptr_t odex_found = find_pattern((const uint8_t *) entry.start_address, (const uint8_t *) entry.end_address, odex_magic_pattern_bytes, odex_magic_pattern_mask, odex_magic_pattern_len);
+                if (odex_found != 0) {
+                    LOGI("Found odex magic in %s at %lx", entry.pathname.c_str(), odex_found);
                 }
 
             }
