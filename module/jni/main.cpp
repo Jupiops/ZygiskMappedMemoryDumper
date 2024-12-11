@@ -212,6 +212,7 @@ private:
         uint8_t dex_magic_pattern_bytes[16];
         bool dex_magic_pattern_mask[16];
         int dex_magic_pattern_len = parse_pattern(dex_magic_pattern, dex_magic_pattern_bytes, dex_magic_pattern_mask, 16);
+        LOGD("Searching for DEX magic pattern: %s", dex_magic_pattern);
 
         if (dex_magic_pattern_len < 1) {
             LOGE("%s", make_string("Failed to parse dex magic pattern").c_str());
@@ -220,6 +221,9 @@ private:
 
         for (const auto &entry: entries) {
             if (entry.permissions.find('r') != std::string::npos) { // Filter for readable memory
+                if (entry.pathname.empty() || entry.pathname == make_string("/dev/binderfs/binder")) {
+                    continue;
+                }
                 LOGD("%lx-%lx %s %lx %s %d %s",
                      entry.start_address, entry.end_address,
                      entry.permissions.c_str(), entry.offset,
