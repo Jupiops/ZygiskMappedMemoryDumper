@@ -221,7 +221,9 @@ private:
 
         for (const auto &entry: entries) {
             if (entry.permissions.find('r') != std::string::npos) { // Filter for readable memory
-                if (entry.pathname.find(make_string("binderfs")) != std::string::npos) {
+                if (entry.pathname.find(make_string("binderfs")) != std::string::npos ||
+                    entry.pathname.rfind("/system/", 0) == 0 ||
+                    entry.pathname.rfind("/apex/", 0) == 0) {
                     continue;
                 }
                 LOGD("%lx-%lx %s %lx %s %d %s",
