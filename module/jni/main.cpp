@@ -54,7 +54,7 @@ public:
         std::string app_name = std::string(raw_app_name);
         env->ReleaseStringUTFChars(args->nice_name, raw_app_name);
 
-        if (app_name.compare(make_string("ar.tvplayer.tv")) != 0) {
+        if (app_name != make_string("ar.tvplayer.tv")) {
             api->setOption(zygisk::Option::DLCLOSE_MODULE_LIBRARY);
             return;
         }
@@ -95,8 +95,7 @@ private:
             std::string addresses;
 
             // Parse the line
-            if (!(iss >> addresses >> entry.permissions >> std::hex >> entry.offset >> entry.device
-                      >> entry.inode)) {
+            if (!(iss >> addresses >> entry.permissions >> std::hex >> entry.offset >> entry.device >> entry.inode)) {
                 LOGW("Failed to parse line: %s", line.c_str());
                 continue;
             }
