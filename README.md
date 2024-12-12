@@ -53,6 +53,10 @@ module_id
 adb -d logcat ZygiskMappedMemoryDumper:D *:S
 ```
 
+## Useful links
+
+* https://cs.android.com/android/platform/superproject/main/+/main:art/libdexfile/dex/dex_file.h
+
 ## License
 
 Although the main Magisk project is licensed under GPLv3, the Zygisk API and its headers are not. Every source code in this repository is released under 0BSD (a public domain equivalent license), so you don't have to worry about any licensing issues while developing Zygisk modules.

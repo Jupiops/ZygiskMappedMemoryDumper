@@ -3,6 +3,17 @@ plugins {
 }
 
 android {
+    namespace "net.jupiops.zmmd"
+    compileSdkVersion = "android-34"
+    ndkVersion "27.2.12479018"
+    defaultConfig {
+        minSdk = 21
+        externalNativeBuild {
+            ndkBuild {
+                arguments("-j${Runtime.getRuntime().availableProcessors()}")
+            }
+        }
+    }
     externalNativeBuild {
         ndkBuild {
             path("jni/Android.mk")

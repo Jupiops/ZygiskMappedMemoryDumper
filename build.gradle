@@ -5,11 +5,15 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:7.4.2"
+        classpath "com.android.tools.build:gradle:8.3.2"
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
+}
+
+ext {
+    ndkVersion = '27.2.12479018'
 }
 
 task clean(type: Delete) {
