@@ -267,11 +267,11 @@ private:
                     entry.pathname.rfind("/apex/", 0) == 0) {
                     continue;
                 }
-//                LOGD("%lx-%lx %s %lx %s %d %s",
-//                     entry.start_address, entry.end_address,
-//                     entry.permissions.c_str(), entry.offset,
-//                     entry.device.c_str(), entry.inode,
-//                     entry.pathname.c_str());
+                LOGD("%lx-%lx %s %lx %s %d %s",
+                     entry.start_address, entry.end_address,
+                     entry.permissions.c_str(), entry.offset,
+                     entry.device.c_str(), entry.inode,
+                     entry.pathname.c_str());
 
                 uintptr_t dex_found = find_pattern((const uint8_t *) entry.start_address, (const uint8_t *) entry.end_address, dex_magic_pattern_bytes, dex_magic_pattern_mask, dex_magic_pattern_len);
                 if (dex_found != 0) {
