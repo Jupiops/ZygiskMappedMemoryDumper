@@ -30,6 +30,7 @@
 #include "log.h"
 #include "zygisk.hpp"
 #include "no_strings.hpp"
+#include "dex_file.h"
 
 using zygisk::Api;
 using zygisk::AppSpecializeArgs;
@@ -78,6 +79,40 @@ private:
         int inode;
         std::string pathname;
     };
+
+    // A general hexdump function that logs using LOGD
+    // data: pointer to data to print
+    // size: number of bytes to print
+    // start_addr: address to display as the start (for labeling)
+    static void hexdump(const void *data, size_t size, uintptr_t start_addr) {
+        const uint8_t *ptr = (const uint8_t *) data;
+        size_t i, j;
+        char line_buffer[128]; // buffer to format a line
+        for (i = 0; i < size; i += 16) {
+            int pos = 0;
+            pos += snprintf(line_buffer + pos, sizeof(line_buffer) - pos, "%08lx: ", (unsigned long) (start_addr + i));
+
+            // Print hex
+            for (j = 0; j < 16 && (i + j) < size; j++) {
+                pos += snprintf(line_buffer + pos, sizeof(line_buffer) - pos, "%02x ", ptr[i + j]);
+            }
+
+            // Add spacing if last line is shorter
+            for (; j < 16; j++) {
+                pos += snprintf(line_buffer + pos, sizeof(line_buffer) - pos, "   ");
+            }
+
+            // Print ASCII
+            pos += snprintf(line_buffer + pos, sizeof(line_buffer) - pos, "|");
+            for (j = 0; j < 16 && (i + j) < size; j++) {
+                uint8_t c = ptr[i + j];
+                pos += snprintf(line_buffer + pos, sizeof(line_buffer) - pos, "%c", isprint(c) ? c : '.');
+            }
+            pos += snprintf(line_buffer + pos, sizeof(line_buffer) - pos, "|");
+
+            LOGD("%s", line_buffer);
+        }
+    }
 
     static std::vector <MapEntry> parseMaps(const std::string &mapsPath) {
         std::vector <MapEntry> entries;
@@ -232,15 +267,31 @@ private:
                     entry.pathname.rfind("/apex/", 0) == 0) {
                     continue;
                 }
-                LOGD("%lx-%lx %s %lx %s %d %s",
-                     entry.start_address, entry.end_address,
-                     entry.permissions.c_str(), entry.offset,
-                     entry.device.c_str(), entry.inode,
-                     entry.pathname.c_str());
+//                LOGD("%lx-%lx %s %lx %s %d %s",
+//                     entry.start_address, entry.end_address,
+//                     entry.permissions.c_str(), entry.offset,
+//                     entry.device.c_str(), entry.inode,
+//                     entry.pathname.c_str());
 
                 uintptr_t dex_found = find_pattern((const uint8_t *) entry.start_address, (const uint8_t *) entry.end_address, dex_magic_pattern_bytes, dex_magic_pattern_mask, dex_magic_pattern_len);
                 if (dex_found != 0) {
                     LOGI("Found dex magic in %s at %lx", entry.pathname.c_str(), dex_found);
+                }
+
+                // Assume you found a match at address `dex_found` which should point to a valid DEX header
+                const DexHeader* dex_header = (const DexHeader*) dex_found;
+
+                // Check if magic matches "dex\n035" or "dex\n037" etc.
+                if (memcmp(dex_header->magic_, "dex\n", 4) == 0) {
+                    LOGI("DEX version: %.3s", &dex_header->magic_[4]);
+                    LOGI("DEX file size: %u", dex_header->file_size_);
+                    LOGI("DEX header size: %u", dex_header->header_size_);
+                    LOGI("Number of class defs: %u", dex_header->class_defs_size_);
+                    LOGI("Data section offset: 0x%x", dex_header->data_off_);
+                    size_t header_size = sizeof(*dex_header);
+                    hexdump(dex_header, header_size, (uintptr_t) dex_header);
+                } else {
+                    LOGW("Not a valid DEX header");
                 }
 
                 uintptr_t odex_found = find_pattern((const uint8_t *) entry.start_address, (const uint8_t *) entry.end_address, odex_magic_pattern_bytes, odex_magic_pattern_mask, odex_magic_pattern_len);

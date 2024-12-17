@@ -56,6 +56,7 @@ adb -d logcat ZygiskMappedMemoryDumper:D *:S
 ## Useful links
 
 * https://cs.android.com/android/platform/superproject/main/+/main:art/libdexfile/dex/dex_file.h
+* https://github.com/hluwa/frida-dexdump
 
 ## License
 
