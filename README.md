@@ -56,7 +56,12 @@ adb -d logcat ZygiskMappedMemoryDumper:D *:S
 ## Useful links
 
 * https://cs.android.com/android/platform/superproject/main/+/main:art/libdexfile/dex/dex_file.h
+* https://cs.android.com/android/platform/superproject/main/+/main:art/runtime/oat/oat.h
 * https://github.com/hluwa/frida-dexdump
+* https://github.com/hackcatml/zygisk-memdump
+* https://github.com/yohanes/zygisk-reflutter
+* https://github.com/Angelawj60311/oat-parser
+* https://github.com/snake-4/Zygisk-Assistant
 
 ## License
 
